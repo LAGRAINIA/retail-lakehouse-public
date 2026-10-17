@@ -1,0 +1,114 @@
+version: 2
+
+models:
+  - name: fct_sales_lines
+    description: "One row per sale line, store and web. Contract enforced: the schema is an interface for BI."
+    config:
+      contract: {enforced: true}
+    columns:
+      - name: sale_line_id
+        data_type: string
+        constraints: [{type: not_null}]
+        data_tests: [unique]
+      - name: channel
+        data_type: string
+        constraints: [{type: not_null}]
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['store', 'web']
+      - name: order_id
+        data_type: string
+      - name: store_id
+        data_type: string
+        description: "Selling store; for web lines, the click & collect store (NULL for home delivery)."
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_store')
+                field: store_id
+      - name: customer_id
+        data_type: string
+        description: "NULL for anonymous store sales and guest web checkouts."
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_id
+              config:
+                severity: warn
+      - name: product_version_key
+        data_type: string
+        data_tests: [not_null]
+      - name: sku
+        data_type: string
+      - name: sale_date
+        data_type: date
+        constraints: [{type: not_null}]
+      - name: sold_at_utc
+        data_type: timestamp
+      - name: is_return
+        data_type: boolean
+      - name: quantity
+        data_type: int
+      - name: currency
+        data_type: string
+      - name: unit_price_local
+        data_type: decimal(12,2)
+      - name: discount_local
+        data_type: decimal(12,2)
+      - name: net_amount_local
+        data_type: decimal(14,2)
+      - name: net_amount_eur
+        data_type: decimal(14,2)
+        data_tests: [not_null]
+      - name: gross_margin_eur
+        data_type: decimal(14,2)
+      - name: is_store_id_repaired
+        data_type: boolean
+      - name: _ingested_at
+        data_type: timestamp
+
+  - name: fct_web_returns
+    columns:
+      - name: return_id
+        data_tests: [unique, not_null]
+
+  - name: fct_inventory_daily
+    columns:
+      - name: inventory_key
+        data_tests: [unique, not_null]
+
+  - name: dim_product
+    columns:
+      - name: product_version_key
+        data_tests: [unique, not_null]
+
+  - name: dim_customer
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+
+  - name: dim_store
+    columns:
+      - name: store_id
+        data_tests: [unique, not_null]
+
+  - name: dim_date
+    columns:
+      - name: date_day
+        data_tests: [unique, not_null]
+
+  - name: mart_store_daily_kpis
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['sale_date', 'store_id']
+
+  - name: mart_web_fulfilment
+    columns:
+      - name: order_date
+        data_tests: [unique, not_null]
+
+  - name: dq_rejected_sales_lines
+    description: "Quarantined sale lines and the reason they were rejected."

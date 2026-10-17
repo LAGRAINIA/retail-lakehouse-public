@@ -1,0 +1,99 @@
+version: 2
+
+models:
+  - name: stg_pos__sales_lines
+    description: "Store sale lines: typed, deduplicated (re-sent files, double exports), store_id repaired."
+    columns:
+      - name: sale_line_id
+        data_tests: [unique, not_null]
+      - name: store_id
+        data_tests: [not_null]
+      - name: quantity
+        description: "Units; negative for a return. NULL means the POS export changed (see SCENARIOS.md)."
+        data_tests: [not_null]
+      - name: transaction_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['SALE', 'RETURN']
+      - name: currency
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['EUR', 'GBP', 'CHF']
+
+  - name: stg_ecom__order_events
+    description: "One row per web order status change."
+    columns:
+      - name: order_id
+        data_tests: [not_null]
+      - name: updated_at
+        data_tests: [not_null]
+      - name: order_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['CREATED', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED']
+
+  - name: stg_ecom__returns
+    columns:
+      - name: return_id
+        data_tests: [unique, not_null]
+
+  - name: stg_erp__products
+    description: "Every daily product extract."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['sku', 'extract_date']
+    columns:
+      - name: unit_price_eur
+        description: "Selling price. A price outside the range blocks the pipeline (ERP export bug)."
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0.5
+                max_value: 5000
+
+  - name: stg_erp__stores
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['store_id', 'extract_date']
+
+  - name: stg_crm__customer_changes
+    columns:
+      - name: customer_id
+        data_tests: [not_null]
+      - name: change_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['I', 'U']
+
+  - name: stg_crm__gdpr_requests
+    columns:
+      - name: request_id
+        data_tests: [unique, not_null]
+
+  - name: stg_supply__inventory
+    columns:
+      - name: quantity_on_hand
+        description: "A negative stock is a booking error in the stock system: it warns, it does not block."
+        data_tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+              config:
+                severity: warn
+
+  - name: stg_finance__fx_rates
+    columns:
+      - name: rate_per_eur
+        data_tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0.5
+                max_value: 2

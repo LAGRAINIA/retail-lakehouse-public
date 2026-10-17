@@ -1,0 +1,41 @@
+version: 2
+
+exposures:
+  - name: store_performance_dashboard
+    label: Store performance dashboard
+    type: dashboard
+    maturity: high
+    url: https://bi.example.com/dashboards/store-performance
+    description: "Daily revenue, basket, margin and stockouts per store, used by store and regional managers."
+    depends_on:
+      - ref('mart_store_daily_kpis')
+      - ref('dim_store')
+    owner:
+      name: Retail Operations
+      email: retail-ops@example.com
+
+  - name: ecommerce_operations_dashboard
+    label: E-commerce operations dashboard
+    type: dashboard
+    maturity: medium
+    url: https://bi.example.com/dashboards/ecommerce-ops
+    description: "Order volumes, cancellations, delivery lead times and returns."
+    depends_on:
+      - ref('mart_web_fulfilment')
+      - ref('fct_web_returns')
+    owner:
+      name: E-commerce Team
+      email: ecommerce@example.com
+
+  - name: demand_forecast_model
+    label: Demand forecast model
+    type: ml
+    maturity: low
+    description: "Weekly demand forecast per product and store, trained on sales and stock history."
+    depends_on:
+      - ref('fct_sales_lines')
+      - ref('fct_inventory_daily')
+      - ref('dim_product')
+    owner:
+      name: Data Science
+      email: data-science@example.com

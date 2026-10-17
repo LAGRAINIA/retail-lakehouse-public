@@ -1,0 +1,31 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Raw feeds loaded as-is by COPY INTO (include/ingestion/bronze.py). CSV columns are strings."
+    database: "{{ env_var('DATABRICKS_CATALOG', 'retail') }}"
+    schema: bronze
+    config:
+      loaded_at_field: _ingested_at
+      freshness:
+        warn_after: {count: 26, period: hour}
+        error_after: {count: 50, period: hour}
+    tables:
+      - name: erp_stores
+        description: "Daily full extract of the store referential (ERP)."
+      - name: erp_products
+        description: "Daily full extract of the product catalogue (ERP), with current prices."
+      - name: crm_customers
+        description: "Customer change feed from the CRM: op I (insert) or U (update), full row image."
+      - name: crm_gdpr_requests
+        description: "Right-to-erasure requests."
+      - name: pos_sales
+        description: "Store sales lines, one file per store and business day. Local time, local currency."
+      - name: ecom_orders
+        description: "E-commerce order snapshots, one row per status change (CDC). Lines are nested."
+      - name: ecom_returns
+        description: "E-commerce returns."
+      - name: supply_inventory
+        description: "End-of-day stock per store and product."
+      - name: finance_fx_rates
+        description: "Daily FX rates (1 EUR = x), business days only."

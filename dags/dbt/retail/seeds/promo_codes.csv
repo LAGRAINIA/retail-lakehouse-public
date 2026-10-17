@@ -1,0 +1,4 @@
+promo_code,discount_pct,valid_from,valid_to,description
+WELCOME10,0.10,2020-01-01,,10% off the first order
+SPORT20,0.20,2026-01-01,,20% off for loyalty members
+RENTREE15,0.15,2026-08-15,2026-09-30,Back-to-school campaign

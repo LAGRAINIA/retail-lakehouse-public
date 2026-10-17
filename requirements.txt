@@ -1,0 +1,4 @@
+# Astro Runtime already ships Airflow and the common providers.
+astronomer-cosmos==1.15.1
+apache-airflow-providers-databricks==7.22.0
+databricks-sdk

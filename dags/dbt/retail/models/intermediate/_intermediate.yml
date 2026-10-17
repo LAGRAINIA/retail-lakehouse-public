@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: int_fx_rates_daily
+    description: "One rate per calendar day and currency, weekends filled with the last published rate."
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['rate_date', 'currency']
+    columns:
+      - name: rate_per_eur
+        data_tests: [not_null]
+
+  - name: int_products_scd2
+    description: "Product versions (SCD2) rebuilt from the daily ERP extracts."
+    columns:
+      - name: product_version_key
+        data_tests: [unique, not_null]
+
+  - name: int_customers_current
+    description: "Current customer state; personal data removed for customers who asked for erasure."
+    columns:
+      - name: customer_id
+        data_tests: [unique, not_null]
+
+  - name: int_ecom__orders
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+
+  - name: int_sales_lines
+    description: "Store and web sale lines in one shape, with data quality flags."
+    columns:
+      - name: sale_line_id
+        data_tests: [unique, not_null]
+
+unit_tests:
+  - name: product_versions_follow_price_changes
+    description: "A price drop then a return to the initial price creates three versions."
+    model: int_products_scd2
+    given:
+      - input: ref('stg_erp__products')
+        rows:
+          - {sku: SKU1, product_name: Bike, category: bikes, unit_price_eur: 100.00, product_status: active, extract_date: 2026-07-01}
+          - {sku: SKU1, product_name: Bike, category: bikes, unit_price_eur: 100.00, product_status: active, extract_date: 2026-07-02}
+          - {sku: SKU1, product_name: Bike, category: bikes, unit_price_eur: 80.00, product_status: active, extract_date: 2026-07-03}
+          - {sku: SKU1, product_name: Bike, category: bikes, unit_price_eur: 100.00, product_status: active, extract_date: 2026-07-06}
+    expect:
+      rows:
+        - {sku: SKU1, unit_price_eur: 100.00, valid_from: 2026-07-01, valid_to: 2026-07-03, is_current: false}
+        - {sku: SKU1, unit_price_eur: 80.00, valid_from: 2026-07-03, valid_to: 2026-07-06, is_current: false}
+        - {sku: SKU1, unit_price_eur: 100.00, valid_from: 2026-07-06, valid_to: null, is_current: true}
+
+  - name: pos_timestamps_are_converted_to_utc
+    description: "POS v1 (local time, no offset) and POS v2 (ISO with offset) give the same UTC instant logic."
+    model: int_pos__sales_lines
+    given:
+      - input: ref('stg_pos__sales_lines')
+        rows:
+          - {sale_line_id: A-1, store_id: ST009, transaction_ts_raw: "2026-07-01 14:00:00"}
+          - {sale_line_id: B-1, store_id: ST009, transaction_ts_raw: "2026-09-05T14:58:03+01:00"}
+          - {sale_line_id: C-1, store_id: ST001, transaction_ts_raw: "2026-12-01 10:00:00"}
+      - input: ref('int_stores_current')
+        rows:
+          - {store_id: ST009, timezone: Europe/London}
+          - {store_id: ST001, timezone: Europe/Paris}
+    expect:
+      rows:
+        - {sale_line_id: A-1, sold_at_utc: "2026-07-01 13:00:00"}
+        - {sale_line_id: B-1, sold_at_utc: "2026-09-05 13:58:03"}
+        - {sale_line_id: C-1, sold_at_utc: "2026-12-01 09:00:00"}

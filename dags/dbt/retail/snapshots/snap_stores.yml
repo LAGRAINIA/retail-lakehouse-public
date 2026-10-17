@@ -1,0 +1,10 @@
+snapshots:
+  - name: snap_stores
+    relation: ref('int_stores_current')
+    description: >
+      Store history captured by a dbt snapshot (check strategy). Unlike int_products_scd2, a snapshot only
+      sees the state at the time it runs: run it daily, or the intermediate states are lost.
+    config:
+      unique_key: store_id
+      strategy: check
+      check_cols: [store_name, store_status, surface_m2]

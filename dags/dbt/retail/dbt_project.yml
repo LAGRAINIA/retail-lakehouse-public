@@ -1,0 +1,43 @@
+name: retail
+version: "1.0.0"
+config-version: 2
+profile: retail
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+snapshot-paths: ["snapshots"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # how far back an incremental run re-reads already ingested rows (safety margin)
+  incremental_lookback_hours: 1
+
+models:
+  retail:
+    +persist_docs: {relation: true, columns: true}
+    staging:           # silver: typed, cleaned, deduplicated, one model per feed
+      +schema: silver
+      +materialized: view
+    intermediate:      # silver: business logic, joins, history
+      +schema: silver
+      +materialized: view
+    marts:             # gold: facts, dimensions, KPIs for BI
+      +schema: gold
+      +materialized: table
+      quality:
+        +schema: quality
+
+seeds:
+  retail:
+    +schema: silver
+
+snapshots:
+  retail:
+    +schema: snapshots
+
+data_tests:
+  retail:
+    +store_failures: false
