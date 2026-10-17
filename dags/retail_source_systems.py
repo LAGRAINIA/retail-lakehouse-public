@@ -9,6 +9,7 @@ Files are deterministic per day, so re-running a day re-sends exactly the same f
 
 from __future__ import annotations
 
+import os
 import tempfile
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -21,11 +22,14 @@ from include.retail_generator.upload import upload_files, volume_root
 
 LANDING = Asset("dbx://retail/landing/raw")
 
+# prod and uat receive a new day every night; dev is fed on demand (RETAIL_SOURCES_SCHEDULE=none)
+SCHEDULE = os.getenv("RETAIL_SOURCES_SCHEDULE", "0 1 * * *")
+
 
 @dag(
     dag_id="retail_source_systems",
     description="Land the daily files of every source system in the Unity Catalog volume",
-    schedule="0 1 * * *",
+    schedule=None if SCHEDULE.lower() == "none" else SCHEDULE,
     start_date=datetime.combine(C.EPOCH, datetime.min.time()),
     catchup=False,
     max_active_runs=1,

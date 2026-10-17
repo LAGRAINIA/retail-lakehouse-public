@@ -24,7 +24,7 @@ BRONZE = Asset("dbx://retail/bronze")
 
 DBT_PROJECT = Path(__file__).parent / "dbt" / "retail"
 DBT_EXECUTABLE = os.getenv("DBT_EXECUTABLE", f"{os.environ.get('AIRFLOW_HOME', '/usr/local/airflow')}/dbt_venv/bin/dbt")
-DBT_TARGET = os.getenv("DBT_TARGET", "prod")
+DBT_TARGET = os.getenv("DBT_TARGET", "dev")   # dev / uat / prod, set per Deployment
 DBT = f"cd {DBT_PROJECT} && {DBT_EXECUTABLE}"
 
 

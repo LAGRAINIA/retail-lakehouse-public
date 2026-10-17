@@ -1,0 +1,76 @@
+# CI/CD for the three Astro Deployments.
+#
+#   pull request          -> tests only
+#   push on branch dev    -> tests, then deploy to the dev Deployment
+#   push on branch uat    -> tests, then deploy to the uat Deployment
+#   push on branch main   -> tests, then deploy to the prod Deployment
+#
+# Promotion = merging: feature branch -> dev -> uat -> main. The same code moves from one environment
+# to the next; only the Deployment configuration (environment variables) differs.
+#
+# Each GitHub Environment (dev, uat, prod) holds:
+#   variable ASTRO_DEPLOYMENT_ID   the target Deployment
+#   secret   ASTRO_API_TOKEN       a Workspace API token allowed to deploy
+
+name: CI/CD
+
+on:
+  pull_request:
+  push:
+    branches: [dev, uat, main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-cd-${{ github.ref }}
+  cancel-in-progress: false      # never cancel a deploy half-way
+
+env:
+  PYTHON_VERSION: "3.13"
+  DBT_DATABRICKS_VERSION: "1.12.7"
+
+jobs:
+  generator-and-dbt:
+    name: Generator tests & dbt parse
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install
+        run: pip install "dbt-databricks==${DBT_DATABRICKS_VERSION}" pytest
+      - name: Generator tests
+        run: python -m pytest tests/generator -q
+      - name: dbt deps & parse (no warehouse needed)
+        working-directory: dags/dbt/retail
+        run: |
+          dbt deps --profiles-dir .
+          dbt parse --profiles-dir . --target prod
+
+  dag-integrity:
+    name: DAG integrity (Astro image)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install the Astro CLI
+        run: curl -sSL install.astronomer.io | sudo bash -s
+      - name: Run the DAG tests inside the Astro Runtime image
+        run: astro dev pytest tests/dags
+
+  deploy:
+    name: Deploy to ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+    if: github.event_name == 'push'
+    needs: [generator-and-dbt, dag-integrity]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
+    env:
+      ASTRO_API_TOKEN: ${{ secrets.ASTRO_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install the Astro CLI
+        run: curl -sSL install.astronomer.io | sudo bash -s
+      - name: Deploy (image + DAGs)
+        run: astro deploy "${{ vars.ASTRO_DEPLOYMENT_ID }}" --force

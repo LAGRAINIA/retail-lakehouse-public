@@ -1,20 +1,39 @@
-# Credentials come from environment variables (.env locally, Airflow connection / secrets in production).
+# One target per environment. The catalog isolates the environments in Unity Catalog:
+#   local -> catalog of your .env (sandbox), schemas prefixed (local_silver, local_gold...)
+#   dev / uat / prod -> retail_dev / retail_uat / retail_prod, set per Astro Deployment
+# Credentials always come from environment variables (.env locally, Astro environment variables in the cloud).
 retail:
-  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  target: "{{ env_var('DBT_TARGET', 'local') }}"
   outputs:
-    dev:
+    local:
       type: databricks
       host: "{{ env_var('DATABRICKS_HOST', 'not-set.cloud.databricks.com') | replace('https://', '') }}"
       http_path: "{{ env_var('DATABRICKS_HTTP_PATH', '/sql/1.0/warehouses/not-set') }}"
       token: "{{ env_var('DATABRICKS_TOKEN', 'not-set') }}"
       catalog: "{{ env_var('DATABRICKS_CATALOG', 'retail') }}"
-      schema: dev            # dev_silver, dev_gold... (see macros/generate_schema_name.sql)
+      schema: local
+      threads: 4
+    dev:
+      type: databricks
+      host: "{{ env_var('DATABRICKS_HOST', 'not-set.cloud.databricks.com') | replace('https://', '') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH', '/sql/1.0/warehouses/not-set') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN', 'not-set') }}"
+      catalog: "{{ env_var('DATABRICKS_CATALOG', 'retail_dev') }}"
+      schema: default
+      threads: 4
+    uat:
+      type: databricks
+      host: "{{ env_var('DATABRICKS_HOST', 'not-set.cloud.databricks.com') | replace('https://', '') }}"
+      http_path: "{{ env_var('DATABRICKS_HTTP_PATH', '/sql/1.0/warehouses/not-set') }}"
+      token: "{{ env_var('DATABRICKS_TOKEN', 'not-set') }}"
+      catalog: "{{ env_var('DATABRICKS_CATALOG', 'retail_uat') }}"
+      schema: default
       threads: 4
     prod:
       type: databricks
       host: "{{ env_var('DATABRICKS_HOST', 'not-set.cloud.databricks.com') | replace('https://', '') }}"
       http_path: "{{ env_var('DATABRICKS_HTTP_PATH', '/sql/1.0/warehouses/not-set') }}"
       token: "{{ env_var('DATABRICKS_TOKEN', 'not-set') }}"
-      catalog: "{{ env_var('DATABRICKS_CATALOG', 'retail') }}"
-      schema: prod           # silver, gold, quality, snapshots
+      catalog: "{{ env_var('DATABRICKS_CATALOG', 'retail_prod') }}"
+      schema: default
       threads: 4
