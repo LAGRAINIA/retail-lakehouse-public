@@ -27,7 +27,7 @@ sequenceDiagram
 | Fichier | `dags/retail_source_systems.py` |
 | Planning | `RETAIL_SOURCES_SCHEDULE` (défaut `0 1 * * *`, `none` = manuel) |
 | `catchup` | `False` : à l'activation, seul le dernier intervalle est exécuté |
-| Tâche | `land_source_files` : génère les fichiers dans un répertoire temporaire, les dépose dans le volume (SDK Databricks, 8 envois en parallèle, écrasement autorisé) |
+| Tâches | `ensure_landing_zone` (crée catalogue, schémas et volume s'ils n'existent pas) puis `land_source_files` : génère les fichiers dans un répertoire temporaire, les dépose dans le volume (SDK Databricks, 8 envois en parallèle, écrasement autorisé) |
 | Sortie | Asset `dbx://retail/landing/raw`, avec en `extra` : `start`, `end`, nombre de fichiers, incidents |
 | Reprises | 2, à 2 minutes d'intervalle |
 
