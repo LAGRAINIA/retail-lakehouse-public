@@ -1,14 +1,14 @@
 # CI/CD for the three Astro Deployments.
 #
 #   pull request          -> tests only
-#   push on branch dev    -> tests, then deploy to the dev Deployment
-#   push on branch uat    -> tests, then deploy to the uat Deployment
-#   push on branch main   -> tests, then deploy to the prod Deployment
+#   push on branch dev    -> tests only (dev runs locally with `astro dev start`, catalog retail_dev)
+#   push on branch uat    -> tests, then deploy to the Astro Deployment retail-uat
+#   push on branch main   -> tests, then deploy to the Astro Deployment retail-prod
 #
 # Promotion = merging: feature branch -> dev -> uat -> main. The same code moves from one environment
 # to the next; only the Deployment configuration (environment variables) differs.
 #
-# Each GitHub Environment (dev, uat, prod) holds:
+# Each GitHub Environment (uat, prod) holds:
 #   variable ASTRO_DEPLOYMENT_ID   the target Deployment
 #   secret   ASTRO_API_TOKEN       a Workspace API token allowed to deploy
 
@@ -61,7 +61,7 @@ jobs:
 
   deploy:
     name: Deploy to ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && (github.ref_name == 'uat' || github.ref_name == 'main')
     needs: [generator-and-dbt, dag-integrity]
     runs-on: ubuntu-latest
     timeout-minutes: 30
