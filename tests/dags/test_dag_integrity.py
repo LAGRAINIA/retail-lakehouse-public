@@ -30,7 +30,7 @@ def test_every_task_retries(dagbag):
 
 
 def test_dbt_failures_fail_the_run(dagbag):
-    dag = dagbag.get_dag("retail_dbt_transform")
+    dag = dagbag.dags["retail_dbt_transform"]
     watcher = dag.get_task("watcher")
     assert watcher.trigger_rule == "one_failed"
     assert not watcher.downstream_task_ids, "the watcher must be a leaf to decide the run state"

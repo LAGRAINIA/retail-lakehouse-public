@@ -112,3 +112,14 @@ moyenne des 4 mêmes jours de semaine précédents.
    Quel grain ? Quels tests ?
 5. **Performance** : quel modèle est le plus lent (`target/run_results.json`) ? Ouvre son Query Profile.
    Que changerais-tu avant d'agrandir le warehouse ?
+6. **Incident vécu en construisant ce projet : le `COPY INTO` qui ne finit jamais.** Le premier chargement de
+   `pos_sales` visait le dossier entier (~1 300 petits fichiers CSV) avec `mergeSchema`. La requête est restée
+   25 minutes en **compilation** (`read_files = 0`) : pour fusionner les schémas, Databricks lit l'en-tête de
+   chaque fichier avant de démarrer. Un jour (11 fichiers) passait en 20 s.
+   - **Diagnostic :** `system.query.history` (statut, durée, fichiers lus) et l'API Query History pour les
+     requêtes en cours (seule la compilation avait démarré).
+   - **Correction :** `PATTERN` sur les dates livrées, par paquets de 5 jours (`include/ingestion/bronze.py`),
+     dates transmises par l'événement d'Asset Airflow. Résultat : 250 000 lignes en 200 s.
+   - **À retenir pour un entretien :** beaucoup de petits fichiers + inférence de schéma = coût par fichier.
+     Autres solutions : un schéma explicite, Auto Loader (qui garde l'état et le schéma), ou des fichiers plus
+     gros côté producteur.

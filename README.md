@@ -67,7 +67,7 @@ set -a && . ./.env && set +a
 python -m include.ingestion setup                                         # catalogue, schémas, volume
 python -m include.retail_generator generate --start 2026-07-01 --end 2026-07-31
 python -m include.retail_generator upload
-python -m include.ingestion load                                          # bronze
+python -m include.ingestion load --start 2026-07-01 --end 2026-07-31     # bronze
 cd dags/dbt/retail && dbt deps && dbt build --profiles-dir .              # silver + gold (target dev)
 ```
 
