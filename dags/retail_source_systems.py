@@ -14,8 +14,10 @@ import tempfile
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+from airflow.providers.databricks.operators.databricks_sql import DatabricksSqlOperator
 from airflow.sdk import Asset, Param, dag, get_current_context, task
 
+from include.ingestion.bronze import setup_statements
 from include.retail_generator import config as C
 from include.retail_generator.generate import generate_batch
 from include.retail_generator.upload import upload_files, volume_root
@@ -46,6 +48,12 @@ SCHEDULE = os.getenv("RETAIL_SOURCES_SCHEDULE", "0 1 * * *")
     doc_md=__doc__,
 )
 def retail_source_systems():
+    # the landing volume must exist before the first upload (a brand-new environment has no catalog yet)
+    ensure_landing_zone = DatabricksSqlOperator(
+        task_id="ensure_landing_zone",
+        databricks_conn_id="databricks_default",
+        sql=setup_statements(),
+    )
 
     @task(outlets=[LANDING])
     def land_source_files() -> dict:
@@ -71,7 +79,7 @@ def retail_source_systems():
         context["outlet_events"][LANDING].extra = summary
         return summary
 
-    land_source_files()
+    ensure_landing_zone >> land_source_files()
 
 
 retail_source_systems()
