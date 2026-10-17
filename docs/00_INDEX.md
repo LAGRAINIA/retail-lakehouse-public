@@ -16,7 +16,8 @@ qui promeut le code de dev vers uat puis prod.
 | 5 | [05_DBT.md](05_DBT.md) | le projet dbt modèle par modèle : grain, clés, logique, tests, contrats |
 | 6 | [06_AIRFLOW.md](06_AIRFLOW.md) | les 3 DAGs, les Assets, Cosmos, le watcher, les paramètres |
 | 7 | [07_EXPLOITATION.md](07_EXPLOITATION.md) | le runbook : opérations courantes, incidents, coûts, erreurs connues |
-| 8 | [SCENARIOS.md](SCENARIOS.md) | **les exercices** : défauts, événements, incidents à injecter, situations d'équipe |
+| 8 | [08_ASTRONOMER_AIRFLOW.md](08_ASTRONOMER_AIRFLOW.md) | **toutes les fonctionnalités Astronomer, Airflow 3 et Cosmos utilisées**, expliquées et illustrées |
+| 9 | [SCENARIOS.md](SCENARIOS.md) | **les exercices** : défauts, événements, incidents à injecter, situations d'équipe |
 
 ## Glossaire
 
