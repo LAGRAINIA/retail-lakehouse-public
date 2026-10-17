@@ -14,6 +14,17 @@ transforme avec dbt sur Databricks, le tout orchestré par Airflow (Astronomer).
  Airflow (Astro) : retail_source_systems ──Asset──► retail_ingest_bronze ──Asset──► retail_dbt_transform (Cosmos)
 ```
 
+## Environnements
+
+| Env | Airflow | Catalogue Databricks | Branche | Déploiement |
+|---|---|---|---|---|
+| **dev** | local (`astro dev start`) | `retail_dev` / `retail` | `dev` | — |
+| **uat** | Astro cloud `retail-uat` | `retail_uat` | `uat` | automatique (GitHub Actions) |
+| **prod** | Astro cloud `retail-prod` | `retail_prod` | `main` | automatique (GitHub Actions) |
+
+📚 **Documentation complète : [docs/00_INDEX.md](docs/00_INDEX.md)** (architecture, environnements, sources,
+bronze, dbt, Airflow, exploitation) et **exercices : [docs/SCENARIOS.md](docs/SCENARIOS.md)**.
+
 ## Contenu
 
 | Dossier | Rôle |

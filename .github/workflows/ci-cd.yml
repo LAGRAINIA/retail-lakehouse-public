@@ -16,8 +16,10 @@ name: CI/CD
 
 on:
   pull_request:
+    paths-ignore: ["docs/**", "**.md"]
   push:
     branches: [dev, uat, main]
+    paths-ignore: ["docs/**", "**.md"]     # a documentation change never redeploys
   workflow_dispatch:
 
 concurrency:
