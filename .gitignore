@@ -17,3 +17,4 @@ dags/dbt/retail/logs/
 logs/
 .pytest_cache/
 dags/dbt/retail/.user.yml
+deploy/*.template.yaml

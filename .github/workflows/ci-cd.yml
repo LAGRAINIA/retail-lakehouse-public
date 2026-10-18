@@ -63,7 +63,7 @@ jobs:
 
   deploy:
     name: Deploy to ${{ github.ref_name == 'main' && 'prod' || github.ref_name }}
-    if: github.event_name == 'push' && (github.ref_name == 'uat' || github.ref_name == 'main')
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref_name == 'uat' || github.ref_name == 'main')
     needs: [generator-and-dbt, dag-integrity]
     runs-on: ubuntu-latest
     timeout-minutes: 30
