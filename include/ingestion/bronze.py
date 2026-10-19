@@ -22,6 +22,7 @@ class BronzeSource:
     table: str
     path: str          # folder under the landing volume
     file_format: str   # CSV or JSON
+    business_days_only: bool = False  # no file on weekends: a PATTERN matching nothing fails (SQLSTATE 42K03)
 
 
 SOURCES = [
@@ -33,7 +34,7 @@ SOURCES = [
     BronzeSource("ecom_orders", "ecom/orders", "JSON"),
     BronzeSource("ecom_returns", "ecom/returns", "CSV"),
     BronzeSource("supply_inventory", "supply/inventory", "CSV"),
-    BronzeSource("finance_fx_rates", "finance/fx_rates", "JSON"),
+    BronzeSource("finance_fx_rates", "finance/fx_rates", "JSON", business_days_only=True),
 ]
 
 FORMAT_OPTIONS = {
@@ -72,6 +73,8 @@ def copy_into_statements(source: BronzeSource, days: list[date], catalog: str | 
     """CREATE the table if needed, then one COPY INTO per chunk of landing days."""
     c = catalog or catalog_name()
     table = f"{c}.bronze.{source.table}"
+    if source.business_days_only:
+        days = [d for d in days if d.weekday() < 5]
     chunks = [days[i:i + chunk_size] for i in range(0, len(days), chunk_size)]
     return [f"CREATE TABLE IF NOT EXISTS {table}"] + [
         f"""
