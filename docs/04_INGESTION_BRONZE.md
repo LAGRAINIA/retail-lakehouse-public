@@ -93,7 +93,7 @@ charge alors en 200 secondes, un jour en quelques secondes.
 `{"start": ..., "end": ...}`. Le DAG d'ingestion le lit (`triggering_asset_events`). On prend aussi **la veille**
 du premier jour : un fichier de caisse en retard porte la date de son jour métier.
 
-**Les alternatives** (à connaître pour un entretien) :
+**Les alternatives** :
 - un **schéma explicite** : plus d'inférence, mais il faut gérer soi-même l'évolution ;
 - **Auto Loader** (`cloudFiles`) ou une *streaming table* : garde l'état des fichiers vus et le schéma inféré
   une seule fois, conçu pour des millions de fichiers ;
