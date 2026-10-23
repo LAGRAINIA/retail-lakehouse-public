@@ -74,7 +74,7 @@ puis le dédoublonnage par `extract_date` garde la dernière ingestion.)
 **Observer :** `assert_every_open_store_reported` passe en `warn` le lendemain, le dashboard magasins montre un
 trou.
 **Résoudre :** relancer l'extraction du jour (re-run de la tâche `land_source_files` pour cette date, sans
-incident). **Question d'entretien :** le run était vert alors que des données manquaient. Comment le rendre rouge ?
+incident). **Pour aller plus loin :** le run était vert alors que des données manquaient. Comment le rendre rouge ?
 
 ### C3. `schema_break` : la colonne `quantity` devient `qty`
 **Symptôme :** le bronze absorbe la nouvelle colonne (`mergeSchema`), `quantity` est NULL pour ce jour.
@@ -120,6 +120,6 @@ moyenne des 4 mêmes jours de semaine précédents.
      requêtes en cours (seule la compilation avait démarré).
    - **Correction :** `PATTERN` sur les dates livrées, par paquets de 5 jours (`include/ingestion/bronze.py`),
      dates transmises par l'événement d'Asset Airflow. Résultat : 250 000 lignes en 200 s.
-   - **À retenir pour un entretien :** beaucoup de petits fichiers + inférence de schéma = coût par fichier.
+   - **À retenir :** beaucoup de petits fichiers + inférence de schéma = coût par fichier.
      Autres solutions : un schéma explicite, Auto Loader (qui garde l'état et le schéma), ou des fichiers plus
      gros côté producteur.

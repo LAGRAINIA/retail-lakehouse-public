@@ -2,7 +2,7 @@
 
 Ce document explique **chaque fonctionnalité** utilisée dans le projet : ce qu'elle fait, comment elle
 fonctionne en interne, où elle est dans le code, et ce qu'on a **réellement observé** en la mettant en place.
-Chaque partie finit par « à retenir pour un entretien ».
+Chaque partie finit par un résumé « à retenir ».
 
 Sommaire :
 - [Partie A : Astronomer](#partie-a--astronomer) — CLI, Astro Runtime, projet Astro, Deployments, déploiement, tokens
@@ -189,7 +189,7 @@ astro deployment token create --deployment-id <id> --name github-actions \
 > d'erreur**. Le déploiement a échoué avec « no context set ». Leçon : vérifier la sortie avant de la stocker
 > (le script final contrôle la longueur et l'absence du mot « error »).
 
-**À retenir pour un entretien (Astronomer)**
+**À retenir (Astronomer)**
 - Astro Runtime = Airflow + Python + réglages, versionné ; la version du Deployment doit suivre le Dockerfile.
 - Image deploy (dépendances) vs DAG deploy (code des DAGs) : ce dernier est rapide et sans redémarrage.
 - Un Deployment par environnement, configuré par variables ; secrets marqués *secret*.
@@ -423,7 +423,7 @@ Les logs des tâches sur Astro contiennent « Successfully emitted OpenLineage `
 Runtime intègre **OpenLineage** : chaque tâche émet des événements de lignage (début, fin, entrées, sorties),
 exploités par l'interface de lignage d'Astro ou un outil comme Marquez. On n'a rien configuré : c'est fourni.
 
-**À retenir pour un entretien (Airflow)**
+**À retenir (Airflow)**
 - Airflow 3 : dag-processor séparé, api-server, Task SDK, DAG bundles, Assets.
 - `catchup=False` exécute quand même le dernier intervalle à l'activation.
 - Assets + `extra` : un pipeline piloté par les données, qui transporte « quoi » est arrivé.
@@ -519,7 +519,7 @@ dossier des DAGs, en lecture seule sur Astro), puis lance dbt. Avec `install_dbt
 packages (`dbt_utils`) avant chaque commande. Coût : quelques secondes par tâche. Optimisation : livrer
 `dbt_packages/` dans l'image ou le bundle et mettre `False`.
 
-**À retenir pour un entretien (Cosmos)**
+**À retenir (Cosmos)**
 - Un modèle = une tâche : visibilité, relance ciblée, tests bloquants.
 - `DBT_MANIFEST` en production pour un chargement de DAG rapide.
 - dbt dans un venv séparé → `InvocationMode.SUBPROCESS` (render **et** execution).

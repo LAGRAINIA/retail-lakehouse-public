@@ -111,7 +111,7 @@ DbtTaskGroup(
 
 Un DAG run est vert si ses **tâches feuilles** sont vertes. Une tâche de nettoyage en `all_done` placée en dernier
 peut donc masquer un échec. Le `watcher` est une feuille en `one_failed` : si une tâche échoue, il échoue, et le
-run est rouge. C'est exactement la question d'entretien Decathlon (DAG vert, données perdues).
+run est rouge. C'est le piège classique du DAG vert alors que des données ont été perdues.
 
 ## 6.4 La configuration commune
 
